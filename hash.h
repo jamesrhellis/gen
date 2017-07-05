@@ -5,15 +5,14 @@
 #include "string.h"
 
 // Macros used in generic code
-#define rh_hash_size(SIZE) (1 << SIZE)
+#define RH_HASH_SIZE(SIZE) (1 << SIZE)
 #define RH_HASH_SLOT(HASH, SIZE) (HASH & ~(~((int64_t)0) << SIZE))
-#define RH_SLOT_DIST(SLOT, POS, SIZE) (SLOT>POS?POS+rh_hash_size(SIZE)-SLOT:POS-SLOT)
+#define RH_SLOT_DIST(SLOT, POS, SIZE) (SLOT>POS?POS+RH_HASH_SIZE(SIZE)-SLOT:POS-SLOT)
 
 // Helpful macros for generating maps with
-#define rh_hash(KEY_T, VALUE_T) rh_hash_##KEY_T##_##VALUE_T
-#define rh_make_hash(NAME, KEY_T, VALUE_T, HASH_F, EQ_F) 			\
-	def_rh_hash(NAME, KEY_T, VALUE_T);					\
-	impl_rh_hash(NAME, KEY_T, VALUE_T, HASH_F, EQ_F);			\
+#define RH_MAKE_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F) 			\
+	RH_DEF_HASH(NAME, KEY_T, VALUE_T);					\
+	RH_IMPL_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F);			\
 
 // Useful functions for making hashmaps with strings
 static inline int64_t rh_string_hash(const char *string) {
@@ -42,7 +41,7 @@ static inline int rh_string_eq(const char *a, const char *b) {
 // 0 is reserved for no-item case -- This is only useful if
 // the key type cannot be optional, e.g. int, char etc
 
-#define def_rh_hash(NAME, KEY_T, VALUE_T)					\
+#define RH_DEF_HASH(NAME, KEY_T, VALUE_T)					\
 struct NAME##_bucket {								\
 	int64_t hash;								\
 										\
@@ -52,15 +51,15 @@ struct NAME##_bucket {								\
 										\
 typedef struct {								\
 	size_t size;								\
-	struct rh_hash_bucket *items;						\
+	struct NAME##_bucket *items;						\
 } NAME;										\
 
-#define impl_rh_hash(NAME, KEY_T, VALUE_T, HASH_F, EQ_F)			\
+#define RH_IMPL_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F)			\
 static inline NAME NAME##_new(size_t size) {					\
-	return (rh_hash) {							\
+	return (NAME) {							\
 		.size = size,							\
 		.items = calloc(sizeof(struct NAME##_bucket)			\
-				, rh_hash_size(size)),				\
+				, RH_HASH_SIZE(size)),				\
 	};									\
 }										\
 										\
@@ -91,7 +90,7 @@ static inline struct NAME##_bucket NAME##_remove(NAME *map, KEY_T key) {	\
 		return (struct NAME##_bucket) {0};				\
 	}									\
 										\
-	struct rh_hash_bucket *found_at = NAME##_find(map, key);		\
+	struct NAME##_bucket *found_at = NAME##_find(map, key);		\
 	if (!found_at) {							\
 		return (struct NAME##_bucket) {0};				\
 	}									\
