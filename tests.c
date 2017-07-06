@@ -10,6 +10,10 @@ RH_MAKE_HASH(test_map, const char *, const char *, fake_hash, rh_string_eq);
 
 void print_h(test_map *h) {
 	size_t s = RH_HASH_SIZE(h->size);
+	puts("Hash table Stats:");
+	fprintf(stderr, "Size: %lu (real %lu), No items: %lu, Allocted block: %s\n"
+			, h->size, RH_HASH_SIZE(h->size), h->no_items, h->items?"True":"False");
+
 	puts("Hash table items:");
 	for (int i = 0;i < s;++i) {
 		fprintf(stderr, "hash:%lu slot:%lu key:%s value:%s\n", h->items[i].hash
@@ -24,7 +28,7 @@ void print_h(test_map *h) {
 int insert(void) {
 	test_map h = test_map_new(2);
 	test_map_set(&h, "1", "Success");
-	if (!rh_string_eq(h.items[1].value, "Success")) {
+	if (!rh_string_eq(h.items[1].value, "Success") || h.no_items != 1) {
 		ERROR_MSG("Insert test FAILED!");
 		return 1;
 	}
@@ -34,13 +38,14 @@ int insert(void) {
 
 int ins_after_other(void) {
 	test_map h = test_map_new(2);
+	h.no_items = 1;
 	h.items[2] = (struct test_map_bucket) {
 		.hash = 2,
 		.key = "Fake",
 		.value = "FAIL",
 	};
 	test_map_set(&h, "2", "Success");
-	if (!rh_string_eq(h.items[3].value, "Success")) {
+	if (!rh_string_eq(h.items[3].value, "Success") || h.no_items != 2) {
 		ERROR_MSG("Insert after other FAILED!");
 		return 1;
 	}
@@ -82,6 +87,7 @@ int ins_after_other_over_boundry(void) {
 
 int ins_already_set(void) {
 	test_map h = test_map_new(2);
+	h.no_items = 1;
 	h.items[2] = (struct test_map_bucket) {
 		.hash = 2,
 		.key = "2",
@@ -89,7 +95,7 @@ int ins_already_set(void) {
 	};
 	struct test_map_bucket removed = test_map_set(&h, "2", "Success");
 	if (!rh_string_eq(h.items[2].value, "Success")
-	|| !rh_string_eq(removed.value, "FAIL")) {
+	|| !rh_string_eq(removed.value, "FAIL") || h.no_items != 1) {
 		ERROR_MSG("Modify already present value FAILED!");
 		return 1;
 	}
@@ -176,15 +182,32 @@ int find_over_boundry(void) {
 	return 0;
 }
 
+int find_not_set(void) {
+	test_map h = test_map_new(2);
+	h.items[2] = (struct test_map_bucket) {
+		.hash = 2,
+		.key = "22",
+		.value = "FAIL",
+	};
+	struct test_map_bucket *found = test_map_find(&h, "2");
+	if (found) {
+		ERROR_MSG("Find test FAILED!");
+		return 1;
+	}
+
+	return 0;
+}
+
 int remove_test(void) {
 	test_map h = test_map_new(2);
+	h.no_items = 1;
 	h.items[2] = (struct test_map_bucket) {
 		.hash = 2,
 		.key = "2",
 		.value = "Success",
 	};
 	struct test_map_bucket removed = test_map_remove(&h, "2");
-	if (!rh_string_eq(removed.value, "Success") || h.items[2].hash) {
+	if (!rh_string_eq(removed.value, "Success") || h.items[2].hash || h.no_items != 0) {
 		ERROR_MSG("Remove test FAILED!");
 		return 1;
 	}
@@ -194,6 +217,7 @@ int remove_test(void) {
 
 int remove_after_other(void) {
 	test_map h = test_map_new(2);
+	h.no_items = 2;
 	h.items[2] = (struct test_map_bucket) {
 		.hash = 2,
 		.key = "22",
@@ -206,7 +230,8 @@ int remove_after_other(void) {
 	};
 	struct test_map_bucket removed = test_map_remove(&h, "2");
 	if (!rh_string_eq(removed.value, "Success") 
-			|| h.items[3].hash || !rh_string_eq(h.items[2].value, "FAIL")) {
+			|| h.items[3].hash || !rh_string_eq(h.items[2].value, "FAIL")
+			|| h.no_items != 1) {
 		ERROR_MSG("Remove after other test FAILED!");
 		return 1;
 	}
@@ -371,6 +396,23 @@ int remove_backtrack_2(void) {
 	return 0;
 }
 
+int remove_not_set(void) {
+	test_map h = test_map_new(2);
+	h.no_items = 1;
+	h.items[2] = (struct test_map_bucket) {
+		.hash = 2,
+		.key = "22",
+		.value = "Success",
+	};
+	struct test_map_bucket removed = test_map_remove(&h, "2");
+	if (!h.items[2].hash || removed.hash || h.no_items != 1) {
+		ERROR_MSG("Remove not set FAILED!");
+		return 1;
+	}
+
+	return 0;
+}
+
 int main() {
 	int no_errors = 0;
 
@@ -386,6 +428,7 @@ int main() {
 	no_errors += find_after_other();
 	no_errors += find_after_smaller_other();
 	no_errors += find_over_boundry();
+	no_errors += find_not_set();
 
 	// Remove tests
 	no_errors += remove_test();
@@ -397,6 +440,7 @@ int main() {
 	no_errors += remove_backtrack_optimal();
 	no_errors += remove_backtrack_over_boundry_optimal();
 	no_errors += remove_backtrack_2();
+	no_errors += remove_not_set();
 
 	if (no_errors) {
 		fprintf(stderr, "\n\n\tTotal number of TESTS FAILED: %d\n", no_errors);

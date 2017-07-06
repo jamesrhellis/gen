@@ -5,7 +5,7 @@
 #include "string.h"
 
 // Macros used in generic code
-#define RH_HASH_SIZE(SIZE) (1 << SIZE)
+#define RH_HASH_SIZE(SIZE) ((size_t)1 << SIZE)
 #define RH_HASH_SLOT(HASH, SIZE) (HASH & ~(~((int64_t)0) << SIZE))
 #define RH_SLOT_DIST(SLOT, POS, SIZE) (SLOT>POS?POS+RH_HASH_SIZE(SIZE)-SLOT:POS-SLOT)
 
@@ -51,13 +51,15 @@ struct NAME##_bucket {								\
 										\
 typedef struct {								\
 	size_t size;								\
+	size_t no_items;							\
 	struct NAME##_bucket *items;						\
 } NAME;										\
 
 #define RH_IMPL_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F)			\
 static inline NAME NAME##_new(size_t size) {					\
-	return (NAME) {							\
+	return (NAME) {								\
 		.size = size,							\
+		.no_items = 0,							\
 		.items = calloc(sizeof(struct NAME##_bucket)			\
 				, RH_HASH_SIZE(size)),				\
 	};									\
@@ -90,7 +92,7 @@ static inline struct NAME##_bucket NAME##_remove(NAME *map, KEY_T key) {	\
 		return (struct NAME##_bucket) {0};				\
 	}									\
 										\
-	struct NAME##_bucket *found_at = NAME##_find(map, key);		\
+	struct NAME##_bucket *found_at = NAME##_find(map, key);			\
 	if (!found_at) {							\
 		return (struct NAME##_bucket) {0};				\
 	}									\
@@ -107,6 +109,7 @@ static inline struct NAME##_bucket NAME##_remove(NAME *map, KEY_T key) {	\
 		i = (i+1) & ~(~((int64_t)0) << map->size);			\
 	}									\
 	map->items[prev] = (struct NAME##_bucket) {0};				\
+	--map->no_items;							\
 										\
 	return ret;								\
 }										\
@@ -146,6 +149,7 @@ static inline struct NAME##_bucket 						\
 		map->items[i] = ins;						\
 		ins = swap;							\
 	}									\
+	++map->no_items;							\
 										\
 	return (struct NAME##_bucket) {0};					\
 }
