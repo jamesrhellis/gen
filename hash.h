@@ -10,7 +10,7 @@
 #define RH_SLOT_DIST(SLOT, POS, SIZE) (SLOT>POS?POS+RH_HASH_SIZE(SIZE)-SLOT:POS-SLOT)
 
 // Helpful macros for generating maps with
-#define RH_MAKE_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F) 			\
+#define RH_MAKE_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F)	 		\
 	RH_DEF_HASH(NAME, KEY_T, VALUE_T);					\
 	RH_IMPL_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F);			\
 
@@ -114,10 +114,10 @@ static inline struct NAME##_bucket NAME##_remove(NAME *map, KEY_T key) {	\
 	return ret;								\
 }										\
 										\
-										\
 static inline struct NAME##_bucket 						\
 		NAME##_set(NAME *map, KEY_T key, VALUE_T value) {		\
 	int64_t hash = HASH_F(key);						\
+										\
 										\
 	struct NAME##_bucket ins = {						\
 		.hash = hash,							\
