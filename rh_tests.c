@@ -20,7 +20,7 @@
 * SOFTWARE.
 *******************************************************************************/
 
-#include "hash.h"
+#include "rh_hash.h"
 #include <stdio.h>
 
 static inline int64_t fake_hash(const char *hash) {
