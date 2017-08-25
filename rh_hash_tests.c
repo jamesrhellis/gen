@@ -28,7 +28,7 @@ static inline int64_t fake_hash(const char *hash) {
 }
 	
 
-RH_MAKE_HASH(test_map, const char *, const char *, fake_hash, rh_string_eq, 0.9);
+RH_HASH_MAKE(test_map, const char *, const char *, fake_hash, rh_string_eq, 0.9);
 
 void print_h(test_map *h) {
 	size_t s = RH_HASH_SIZE(h->size);

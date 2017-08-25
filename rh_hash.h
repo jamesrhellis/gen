@@ -32,9 +32,9 @@
 #define RH_SLOT_DIST(SLOT, POS, SIZE) (SLOT>POS?POS+RH_HASH_SIZE(SIZE)-SLOT:POS-SLOT)
 
 // Helpful macros for generating maps with
-#define RH_MAKE_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F, LOAD)	 		\
-	RH_DEF_HASH(NAME, KEY_T, VALUE_T);					\
-	RH_IMPL_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F, LOAD);			\
+#define RH_HASH_MAKE(NAME, KEY_T, VALUE_T, HASH_F, EQ_F, LOAD)	 		\
+	RH_HASH_DEF(NAME, KEY_T, VALUE_T);					\
+	RH_HASH_IMPL(NAME, KEY_T, VALUE_T, HASH_F, EQ_F, LOAD);			\
 
 // Useful functions for making hashmaps with strings
 static inline int64_t rh_string_hash(const char *string) {
@@ -65,7 +65,7 @@ static inline int rh_string_eq(const char *a, const char *b) {
 
 // mo_items is the number of items which can be added before a re-size
 
-#define RH_DEF_HASH(NAME, KEY_T, VALUE_T)					\
+#define RH_HASH_DEF(NAME, KEY_T, VALUE_T)					\
 typedef struct NAME##_bucket {							\
 	KEY_T key;								\
 	VALUE_T value;								\
@@ -79,7 +79,7 @@ typedef struct {								\
 	struct NAME##_bucket *items;						\
 } NAME;										\
 
-#define RH_IMPL_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F, LOAD)			\
+#define RH_HASH_IMPL(NAME, KEY_T, VALUE_T, HASH_F, EQ_F, LOAD)			\
 static inline struct NAME##_bucket 						\
 		NAME##_uset(NAME *map, int64_t hash, NAME##_bucket item) {	\
 	int64_t i = RH_HASH_SLOT(hash, map->size);				\
