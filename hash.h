@@ -5,9 +5,9 @@
 #include "string.h"
 
 // Macros used in generic code
-#define RH_HASH_SIZE(SIZE) ((size_t)1 << SIZE)
-#define RH_HASH_SLOT(HASH, SIZE) (HASH & ~(~((int64_t)0) << SIZE))
-#define RH_SLOT_DIST(SLOT, POS, SIZE) (SLOT>POS?POS+RH_HASH_SIZE(SIZE)-SLOT:POS-SLOT)
+#define RH_SIZE(SIZE) ((size_t)1 << SIZE)
+#define RH_SLOT(HASH, SIZE) (HASH & ~(~((int64_t)0) << SIZE))
+#define RH_SLOT_DIST(SLOT, POS, SIZE) (SLOT>POS?POS+RH_SIZE(SIZE)-SLOT:POS-SLOT)
 
 // Helpful macros for generating maps with
 #define RH_MAKE_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F, LOAD)	 		\
@@ -60,11 +60,11 @@ typedef struct {								\
 #define RH_IMPL_HASH(NAME, KEY_T, VALUE_T, HASH_F, EQ_F, LOAD)			\
 static inline struct NAME##_bucket 						\
 		NAME##_uset(NAME *map, int64_t hash, NAME##_bucket item) {	\
-	int64_t i = RH_HASH_SLOT(hash, map->size);				\
+	int64_t i = RH_SLOT(hash, map->size);					\
 	while (hash) {								\
-		int64_t slot = RH_HASH_SLOT(hash, map->size);			\
+		int64_t slot = RH_SLOT(hash, map->size);			\
 		while (map->hash[i] && RH_SLOT_DIST(slot, i, map->size) 	\
-				<= RH_SLOT_DIST(RH_HASH_SLOT(map->hash[i], map->size)	\
+				<= RH_SLOT_DIST(RH_SLOT(map->hash[i], map->size)\
 						, i, map->size)) {		\
 			/* Return old if item already in table */		\
 			if (map->hash[i] == hash				\
@@ -93,12 +93,12 @@ static inline int NAME##_resize(NAME *map, size_t to) {				\
 		return 0;							\
 	}									\
 										\
-	int64_t *hash = calloc(sizeof *hash, RH_HASH_SIZE(to));			\
+	int64_t *hash = calloc(sizeof *hash, RH_SIZE(to));			\
 	if (!hash) {								\
 		return 0;							\
 	}									\
 										\
-	NAME##_bucket *items = calloc(sizeof *items, RH_HASH_SIZE(to));		\
+	NAME##_bucket *items = calloc(sizeof *items, RH_SIZE(to));		\
 	if (!items) {								\
 		free(hash);							\
 		return 0;							\
@@ -108,14 +108,14 @@ static inline int NAME##_resize(NAME *map, size_t to) {				\
 	NAME temp = {								\
 		.size = to,							\
 		/* Excess items will be removed while inserting */		\
-		.no_items = (size_t)((RH_HASH_SIZE(to)) * LOAD),		\
+		.no_items = (size_t)((RH_SIZE(to)) * LOAD),			\
 		.hash = hash,							\
 		.items = items,							\
 	};									\
 										\
 	/* Allow for empty starting map */					\
 	if (map->hash && map->items) {						\
-		for (int i = 0;i < RH_HASH_SIZE(map->size);++i) {		\
+		for (int i = 0;i < RH_SIZE(map->size);++i) {			\
 			if (map->hash[i]) {					\
 				/* Return can be ignored as impossible for */	\
 				/* same item to be in old hash twice */		\
@@ -142,11 +142,11 @@ static inline struct NAME##_bucket *NAME##_find(NAME *map, KEY_T key) {		\
 	}									\
 										\
 	int64_t hash = HASH_F(key);						\
-	int64_t slot = RH_HASH_SLOT(hash, map->size);				\
+	int64_t slot = RH_SLOT(hash, map->size);				\
 										\
 	int64_t i = slot;							\
 	while (RH_SLOT_DIST(slot, i, map->size)					\
-	<= RH_SLOT_DIST(RH_HASH_SLOT(map->hash[i], map->size) 			\
+	<= RH_SLOT_DIST(RH_SLOT(map->hash[i], map->size) 			\
 			, i, map->size)) {					\
 		if (map->hash[i] == hash && EQ_F(map->items[i].key, key)) {	\
 			return &map->items[i];					\
@@ -172,7 +172,7 @@ static inline struct NAME##_bucket NAME##_remove(NAME *map, KEY_T key) {	\
 	int64_t prev = i;							\
 	i = (i+1) & ~(~((int64_t)0) << map->size);				\
 	while (map->hash[i]	 						\
-	&& RH_SLOT_DIST(RH_HASH_SLOT(map->hash[i], map->size)			\
+	&& RH_SLOT_DIST(RH_SLOT(map->hash[i], map->size)			\
 			, i, map->size) > 0) {					\
 		map->hash[prev] = map->hash[i];					\
 		map->items[prev] = map->items[i];				\
