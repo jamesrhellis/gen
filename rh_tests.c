@@ -31,15 +31,15 @@ static inline int64_t fake_hash(const char *hash) {
 RH_MAKE_HASH(test_map, const char *, const char *, fake_hash, rh_string_eq, 0.9);
 
 void print_h(test_map *h) {
-	size_t s = RH_SIZE(h->size);
+	size_t s = RH_HASH_SIZE(h->size);
 	puts("Hash table Stats:");
 	fprintf(stderr, "Size: %lu (real %lu), No items: %lu, Allocted blocks: %s\n"
-			, h->size, RH_SIZE(h->size), h->no_items, (h->items&&h->hash)?"True":"False");
+			, h->size, RH_HASH_SIZE(h->size), h->no_items, (h->items&&h->hash)?"True":"False");
 
 	puts("Hash table items:");
 	for (int i = 0;i < s;++i) {
 		fprintf(stderr, "hash:%lu slot:%lu key:%s value:%s\n", h->hash[i]
-				, RH_SLOT(h->hash[i], h->size)
+				, RH_HASH_SLOT(h->hash[i], h->size)
 				, h->items[i].key?:"Null", h->items[i].value?:"Null");
 	}
 }
