@@ -36,6 +36,9 @@ void print_h(test_map *h) {
 	fprintf(stderr, "Size: %lu (real %lu), No items: %lu, Allocted blocks: %s\n"
 			, h->size, RH_HASH_SIZE(h->size), h->no_items, (h->items&&h->hash)?"True":"False");
 
+	if (!(h->items&&h->hash)) {
+		return;
+	}
 	puts("Hash table items:");
 	for (int i = 0;i < s;++i) {
 		fprintf(stderr, "hash:%lu slot:%lu key:%s value:%s\n", h->hash[i]
