@@ -1,8 +1,8 @@
 #ifndef RH_HASH_H
 #define RH_HASH_H
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 
 // Macros used in generic code
 #define RH_SIZE(SIZE) ((size_t)1 << SIZE)
