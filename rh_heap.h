@@ -20,16 +20,17 @@
 * SOFTWARE.
 *******************************************************************************/
 
-#ifndef RH_AL_H
-#define RH_AL_H
+
+#ifndef RH_HEAP_H
+#define RH_HEAP_H
 
 #include <stdlib.h>
 
-#define RH_AL_MAKE(NAME, TYPE)					 		\
-	RH_AL_DEF(NAME, TYPE);							\
-	RH_AL_IMPL(NAME, TYPE);
+#define RH_HEAP_MAKE(NAME, TYPE, CMP)				 		\
+	RH_HEAP_DEF(NAME, TYPE);						\
+	RH_HEAP_IMPL(NAME, TYPE, CMP);
 
-#define RH_AL_DEF(NAME, TYPE) 							\
+#define RH_HEAP_DEF(NAME, TYPE) 						\
 typedef struct {								\
 	size_t size;								\
 	size_t top;								\
@@ -37,21 +38,21 @@ typedef struct {								\
 	TYPE *items;								\
 } NAME;										\
 
-#define RH_AL_IMPL(NAME, TYPE)							\
-static inline size_t NAME##_resize(NAME *al, size_t to) {			\
-	if (al->top > to) {							\
+#define RH_HEAP_IMPL(NAME, TYPE, CMP)						\
+static inline size_t NAME##_resize(NAME *hp, size_t to) {			\
+	if (hp->top > to) {							\
 		return 0;							\
 	}									\
 										\
-	TYPE *new = realloc(al->items, to * sizeof(TYPE));			\
+	TYPE *new = realloc(hp->items, to * sizeof(TYPE));			\
 	if (!new) {								\
 		return 0;							\
 	}									\
 										\
-	al->items = new;							\
-	al->size = to;								\
+	hp->items = new;							\
+	hp->size = to;								\
 										\
-	return al->size;							\
+	return hp->size;							\
 }										\
 										\
 static inline NAME NAME##_new(size_t size) {					\
@@ -60,34 +61,54 @@ static inline NAME NAME##_new(size_t size) {					\
 	return ret;								\
 }										\
 										\
-static inline TYPE NAME##_peek(NAME *al) {					\
-	return al->items[al->top -1];						\
+static inline TYPE NAME##_peek(NAME *hp) {					\
+	return hp->top ? hp->items[0] : (TYPE) {0};				\
 }										\
 										\
-static inline int NAME##_push(NAME *al, TYPE push) {				\
-	if (al->top == al->size							\
-	&& !NAME##_resize(al, (al->size?:1) * 2)) {				\
+static inline int NAME##_ins(NAME *hp, TYPE ins) {				\
+	if (hp->top == hp->size							\
+	&& !NAME##_resize(hp, (hp->size?:1) * 2)) {				\
 		return 0;							\
 	}									\
 										\
-	al->items[al->top++] = push;						\
+	size_t i = hp->top++;							\
+	while (i && CMP(ins, hp->items[(i-1) >> 1]) < 0) {			\
+		hp->items[i] = hp->items[(i - 1) >> 1];				\
+		i = (i - 1) >> 1;						\
+	}									\
+	hp->items[i] = ins;							\
+										\
 	return 1;								\
 }										\
 										\
-static inline TYPE NAME##_pop(NAME *al) {					\
-	if (!al->top) {								\
+static inline TYPE NAME##_rem(NAME *hp) {					\
+	if (!hp->top) {								\
 		return (TYPE) {0};						\
 	}									\
 										\
-	return al->items[--al->top];						\
-}										\
+	TYPE ret = hp->items[0];						\
+	TYPE rep = hp->items[hp->top--];					\
+	size_t i = 0;								\
 										\
-static inline TYPE NAME##_view(NAME *al, size_t pos) {				\
-	if (pos >= al->top) {							\
-		return (TYPE) {0};						\
+	while (1) {								\
+		size_t n;							\
+		if ((n = (i << 1) + 1) <= hp->top 				\
+				&& CMP(rep, hp->items[n]) > 0) {		\
+			hp->items[i] = hp->items[n];				\
+			i = n;							\
+			continue;						\
+		}								\
+		if ((n = (i << 1) + 2) <= hp->top 				\
+				&& CMP(rep, hp->items[n]) > 0) {		\
+			hp->items[i] = hp->items[n];				\
+			i = n;							\
+			continue;						\
+		}								\
+		break;								\
 	}									\
+	hp->items[i] = rep;							\
 										\
-	return al->items[pos];							\
-}										\
+	return 1;								\
+}
 
 #endif
