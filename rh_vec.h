@@ -26,14 +26,14 @@
 static inline NAME NAME##_add(const NAME a, const NAME b) {			\
 	NAME c;									\
 	for (int i = 0;i < SIZE;++i) {						\
-		c.array[i] = a->array[i] + b->array[i];				\
+		c.array[i] = a.array[i] + b.array[i];				\
 	}									\
 	return c;								\
 }										\
 static inline NAME NAME##_sub(const NAME a, const NAME b) {			\
 	NAME c;									\
 	for (int i = 0;i < SIZE;++i) {						\
-		c.array[i] = a->array[i] - b->array[i];				\
+		c.array[i] = a.array[i] - b.array[i];				\
 	}									\
 	return c;								\
 }										\
@@ -48,30 +48,38 @@ static inline int NAME##_eq(const NAME a, const NAME b) {			\
 static inline NAME NAME##_scale(const NAME a, const TYPE factor) {		\
 	NAME b;									\
 	for (int i = 0;i < SIZE;++i) {						\
-		b.array[i] = a->array[i] * factor;				\
+		b.array[i] = a.array[i] * factor;				\
 	}									\
 	return b;								\
 }										\
 static inline TYPE NAME##_dot(const NAME a, const NAME b) {			\
 	TYPE dot = 0;								\
 	for (int i = 0;i < SIZE;++i) {						\
-		dot += a->array[i] * b->array[i];				\
+		dot += a.array[i] * b.array[i];				\
 	}									\
 	return dot;								\
 }										\
 static inline TYPE NAME##_sum(const NAME a) {					\
 	TYPE sum = 0;								\
 	for (int i = 0;i < SIZE;++i) {						\
-		sum += a->array[i];						\
+		sum += a.array[i];						\
 	}									\
 	return sum;								\
+}										\
+static inline NAME NAME##_norm(const NAME a) {					\
+	TYPE sum = NAME##_sum(a);						\
+	NAME ret;								\
+	for (int i = 0;i < SIZE;++i) {						\
+		ret.array[i] = a.array[i] / sum;				\
+	}									\
+	return ret;								\
 }										\
 
 #define RH_IMPL_3_VEC(NAME, TYPE)						\
 static inline NAME NAME##_cross(const NAME a, const NAME b) {			\
-	TYPE x = a->y*b->z - a->z*b->y;						\
-	TYPE y = a->z*b->x - a->x*b->z;						\
-	TYPE z = a->x*b->y - a->y*b->x;						\
+	TYPE x = a.y*b.z - a.z*b.y;						\
+	TYPE y = a.z*b.x - a.x*b.z;						\
+	TYPE z = a.x*b.y - a.y*b.x;						\
 	return (NAME){{x, y, z}};						\
 }										\
 
@@ -103,7 +111,7 @@ static inline NAME NAME##_cross(const NAME a, const NAME b) {			\
 			TYPE p;				\
 		};					\
 		struct {				\
-			vec2(TYPE) vec2;		\
+			v2##TYPE vec2;			\
 			TYPE _;				\
 		};					\
 	} v3##TYPE;					\
@@ -129,7 +137,7 @@ static inline NAME NAME##_cross(const NAME a, const NAME b) {			\
 			TYPE q;				\
 		};					\
 		struct {				\
-			vec3(TYPE) vec3;		\
+			v3##TYPE vec3;		\
 			TYPE _;				\
 		};					\
 	} v4##TYPE;					\
