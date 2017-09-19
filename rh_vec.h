@@ -22,6 +22,8 @@
 #ifndef RH_VEC_H
 #define RH_VEC_H
 
+#include "math.h"
+
 #define RH_IMPL_SIZED_VEC(NAME, SIZE, TYPE)					\
 static inline NAME NAME##_add(const NAME a, const NAME b) {			\
 	NAME c;									\
@@ -67,10 +69,10 @@ static inline TYPE NAME##_sum(const NAME a) {					\
 	return sum;								\
 }										\
 static inline NAME NAME##_norm(const NAME a) {					\
-	TYPE sum = NAME##_sum(a);						\
+	TYPE len = sqrt(NAME##_dot(a, a));					\
 	NAME ret;								\
 	for (int i = 0;i < SIZE;++i) {						\
-		ret.array[i] = a.array[i] / sum;				\
+		ret.array[i] = a.array[i] / len;				\
 	}									\
 	return ret;								\
 }										\
