@@ -23,7 +23,7 @@
 #include "rh_hash.h"
 #include <stdio.h>
 
-static inline int64_t fake_hash(const char *hash) {
+static inline uint64_t fake_hash(const char *hash) {
 	return *hash - '0';
 }
 	
