@@ -167,9 +167,9 @@ static inline struct NAME##_bucket *NAME##_find(NAME *map, KEY_T key) {		\
 	uint64_t slot = RH_HASH_SLOT(hash, map->size);				\
 										\
 	uint64_t i = slot;							\
-	while (RH_SLOT_DIST(slot, i, map->size)					\
-	<= RH_SLOT_DIST(RH_HASH_SLOT(map->hash[i], map->size) 			\
-			, i, map->size)) {					\
+	while (map->hash[i] && (RH_SLOT_DIST(slot, i, map->size)		\
+	<= RH_SLOT_DIST(RH_HASH_SLOT(map->hash[i], map->size)			\
+			, i, map->size))) {					\
 		if (map->hash[i] == hash && EQ_F(map->items[i].key, key)) {	\
 			return &map->items[i];					\
 		}								\

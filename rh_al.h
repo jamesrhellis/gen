@@ -54,6 +54,10 @@ static inline size_t NAME##_resize(NAME *al, size_t to) {			\
 	return al->size;							\
 }										\
 										\
+static inline void NAME##_free(NAME *al) {					\
+	free(al->items);							\
+}										\
+										\
 static inline NAME NAME##_new(size_t size) {					\
 	NAME ret = {0};								\
 	NAME##_resize(&ret, size);						\
