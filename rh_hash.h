@@ -54,9 +54,17 @@ static inline int rh_string_eq(const char *a, const char *b) {
 	return !strcmp(a, b);
 }
 
+// Useful iteration macro
+#define rh_hash_for(iter, ht, code)						\
+if (ht.items)									\
+	for (size_t __i = 0;__i < RH_HASH_SIZE(ht.size);++__i)			\
+		if (ht.hash[__i]) {						\
+			iter = ht.items[__i].value;				\
+			code }
 
-// NAME##bucket is returned by functions as the hashmap does not take ownership of 	
-// any resources so both the key and value must be returned for management	
+
+// NAME##bucket is returned by functions as the hashmap does not take ownership of
+// any resources so both the key and value must be returned for management
 
 // Hash should be size_t, but this would require Arch 
 // dependent hashing algorithms	
@@ -111,11 +119,11 @@ static inline struct NAME##_bucket 						\
 }										\
 										\
 static inline int NAME##_resize(NAME *map, size_t to) {				\
-	if (to <= map->size) {							\
+	if (!to || to <= map->size) {						\
 		return 0;							\
 	}									\
 										\
-	uint64_t *hash = calloc(sizeof *hash, RH_HASH_SIZE(to));			\
+	uint64_t *hash = calloc(sizeof *hash, RH_HASH_SIZE(to));		\
 	if (!hash) {								\
 		return 0;							\
 	}									\
@@ -156,6 +164,28 @@ static inline NAME NAME##_new(size_t size) {					\
 	NAME ret = {0};								\
 	NAME##_resize(&ret, size);						\
 	return ret;								\
+}										\
+										\
+static inline NAME NAME##_clone(NAME *map) {					\
+	if (!map->hash || !map->size 						\
+		|| map->no_items 						\
+			== (size_t)((RH_HASH_SIZE(map->size)) * LOAD)) {	\
+		return (NAME) {0};						\
+	}									\
+										\
+	NAME ret = {0};								\
+	NAME##_resize(&ret, map->size);						\
+	memcpy(ret.items, map->items						\
+		, RH_HASH_SIZE(map->size)*sizeof(*map->items));			\
+	memcpy(ret.hash, map->hash						\
+		, RH_HASH_SIZE(map->size)*sizeof(*map->hash));			\
+	return ret;								\
+}										\
+										\
+static inline void NAME##_free(NAME *map) {					\
+	free(map->hash);							\
+	free(map->items);							\
+	*map = (NAME){0};							\
 }										\
 										\
 static inline struct NAME##_bucket *NAME##_find(NAME *map, KEY_T key) {		\

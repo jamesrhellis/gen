@@ -50,4 +50,7 @@ typedef double f64;
 // Pointer typedef (for name mangling macros)
 // Don't use to hide pointers otherwise
 typedef void *ptr;
+
+#define true 1
+#define false 0
 #endif

@@ -24,10 +24,18 @@
 #define RH_AL_H
 
 #include <stdlib.h>
+#include <string.h>
 
 #define RH_AL_MAKE(NAME, TYPE)					 		\
 	RH_AL_DEF(NAME, TYPE);							\
 	RH_AL_IMPL(NAME, TYPE);
+
+// Useful iteration macro
+#define rh_al_for(iter, al, code)						\
+if (al.items)									\
+	for (size_t __i = 0;__i < al.top;++__i) {				\
+		iter = al.items[__i];						\
+		code }
 
 #define RH_AL_DEF(NAME, TYPE) 							\
 typedef struct {								\
@@ -39,7 +47,7 @@ typedef struct {								\
 
 #define RH_AL_IMPL(NAME, TYPE)							\
 static inline size_t NAME##_resize(NAME *al, size_t to) {			\
-	if (al->top > to) {							\
+	if (!to || al->top > to) {						\
 		return 0;							\
 	}									\
 										\
@@ -64,8 +72,26 @@ static inline NAME NAME##_new(size_t size) {					\
 	return ret;								\
 }										\
 										\
+static inline NAME NAME##_clone(NAME *al) {					\
+	if (!al->items || !al->top) {						\
+		return (NAME) {0};						\
+	}									\
+										\
+	NAME ret = {0};								\
+	NAME##_resize(&ret, al->size);						\
+	memcpy(ret.items, al->items, al->top * sizeof(*al->items));		\
+	return ret;								\
+}										\
+										\
 static inline TYPE NAME##_peek(NAME *al) {					\
 	return al->items[al->top -1];						\
+}										\
+										\
+static inline TYPE *NAME##_rpeek(NAME *al) {					\
+	if (!al->top) {								\
+		return NULL;							\
+	}									\
+	return &al->items[al->top -1];						\
 }										\
 										\
 static inline int NAME##_push(NAME *al, TYPE push) {				\
