@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 // Macros used in generic code
 #define RH_HASH_SIZE(SIZE) ((size_t)1 << SIZE)
