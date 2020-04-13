@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright 2017 James RH Ellis
+* Copyright 2017-2020 James RH Ellis
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal 
@@ -31,11 +31,9 @@
 	RH_AL_IMPL(NAME, TYPE);
 
 // Useful iteration macro
-#define rh_al_for(iter, al, code)						\
+#define rh_al_for(iter, al)							\
 if (al.items)									\
-	for (size_t __i = 0;__i < al.top;++__i) {				\
-		iter = al.items[__i];						\
-		code }
+	for (size_t _i = 0;iter = al.items[_i], _i < al.top;++_i)	 	\
 
 #define RH_AL_DEF(NAME, TYPE) 							\
 typedef struct {								\
@@ -69,6 +67,7 @@ static inline void NAME##_free(NAME *al) {					\
 static inline NAME NAME##_new(size_t size) {					\
 	NAME ret = {0};								\
 	NAME##_resize(&ret, size);						\
+	memset(ret.items, 0, size * sizeof(TYPE));				\
 	return ret;								\
 }										\
 										\
@@ -83,15 +82,11 @@ static inline NAME NAME##_clone(NAME *al) {					\
 	return ret;								\
 }										\
 										\
-static inline TYPE NAME##_peek(NAME *al) {					\
-	return al->items[al->top -1];						\
-}										\
-										\
-static inline TYPE *NAME##_rpeek(NAME *al) {					\
+static inline TYPE *NAME##_peek(NAME *al) {					\
 	if (!al->top) {								\
 		return NULL;							\
 	}									\
-	return &al->items[al->top -1];						\
+	return &al->items[al->top - 1];						\
 }										\
 										\
 static inline int NAME##_push(NAME *al, TYPE push) {				\
@@ -118,6 +113,14 @@ static inline TYPE NAME##_view(NAME *al, size_t pos) {				\
 	}									\
 										\
 	return al->items[pos];							\
+}										\
+										\
+static inline TYPE NAME##_pick(NAME *al, size_t pos) {				\
+	if (pos >= al->top) {							\
+		return (TYPE) {0};						\
+	}									\
+										\
+	return al->items[(al->top - 1) - pos];					\
 }										\
 
 #endif

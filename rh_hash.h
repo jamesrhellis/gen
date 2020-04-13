@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright 2017 James RH Ellis
+* Copyright 2017-2020 James RH Ellis
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal 
@@ -56,12 +56,10 @@ static inline int rh_string_eq(const char *a, const char *b) {
 }
 
 // Useful iteration macro
-#define rh_hash_for(iter, ht, code)						\
+#define rh_hash_for(iter, ht)							\
 if (ht.items)									\
-	for (size_t __i = 0;__i < RH_HASH_SIZE(ht.size);++__i)			\
-		if (ht.hash[__i]) {						\
-			iter = ht.items[__i].value;				\
-			code }
+	for (size_t _i = 0;_i < RH_HASH_SIZE(ht.size);++_i)			\
+		if ((iter = ht.items[_i].value), ht.hash[_i])			\
 
 
 // NAME##bucket is returned by functions as the hashmap does not take ownership of
