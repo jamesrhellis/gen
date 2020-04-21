@@ -78,6 +78,7 @@ static inline NAME NAME##_clone(NAME *al) {					\
 										\
 	NAME ret = {0};								\
 	NAME##_resize(&ret, al->size);						\
+	ret.top = al->top;							\
 	memcpy(ret.items, al->items, al->top * sizeof(*al->items));		\
 	return ret;								\
 }										\
