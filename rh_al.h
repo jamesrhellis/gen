@@ -33,7 +33,7 @@
 // Useful iteration macro
 #define rh_al_for(iter, al)							\
 if (al.items)									\
-	for (size_t _i = 0;iter = al.items[_i], _i < al.top;++_i)	 	\
+	for (size_t _i = 0; (_i < al.top) ? (iter = al.items[_i], 1) : 0; ++_i)	\
 
 #define RH_AL_DEF(NAME, TYPE) 							\
 typedef struct {								\
