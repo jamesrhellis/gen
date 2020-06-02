@@ -58,14 +58,14 @@ static inline int rh_string_eq(const char *a, const char *b) {
 // Useful iteration macro
 #define rh_hash_for(iter, ht)							\
 if (ht.items)									\
-	for (size_t _i = 0, _j = 0;_i < RH_HASH_SIZE(ht.size);++_i)		\
+	for (size_t _i = 0, _j = 0;_i < RH_HASH_SIZE(ht.size);++_i, _j=0)	\
 		for (iter = ht.items[_i].value; !_j; _j = 1)			\
 			if (ht.hash[_i])
 
 // Useful iteration macro
 #define rh_hash_ref_for(iter, ht)						\
 if (ht.items)									\
-	for (size_t _i = 0, _j = 0;_i < RH_HASH_SIZE(ht.size);++_i)		\
+	for (size_t _i = 0, _j = 0;_i < RH_HASH_SIZE(ht.size);++_i, _j=0)	\
 		for (iter = ht.items[_i].value; !_j; _j = 1)			\
 			if (ht.hash[_i])
 

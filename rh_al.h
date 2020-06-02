@@ -33,7 +33,7 @@
 // Useful iteration macro
 #define rh_al_for(iter, al)							\
 if (al.items)									\
-	for (size_t _i = 0, _j = 0; _i < al.top; ++_i)				\
+	for (size_t _i = 0, _j = 0; _i < al.top; ++_i, _j=0)			\
 		for (iter = al.items[_i]; !_j; _j = 1)
 
 // Useful iteration macro
