@@ -28,9 +28,9 @@
 #include <stdint.h>
 
 // Macros used in generic code
-#define RH_HASH_SIZE(SIZE) ((size_t)1 << SIZE)
-#define RH_HASH_SLOT(HASH, SIZE) (HASH & ~(~((uint64_t)0) << SIZE))
-#define RH_SLOT_DIST(SLOT, POS, SIZE) (SLOT>POS?POS+RH_HASH_SIZE(SIZE)-SLOT:POS-SLOT)
+#define RH_HASH_SIZE(SIZE) SIZE
+#define RH_HASH_SLOT(HASH, SIZE) (HASH & (SIZE - 1))
+#define RH_SLOT_DIST(SLOT, POS, SIZE) (SLOT>POS?POS+SIZE-SLOT:POS-SLOT)
 
 // Helpful macros for generating maps with
 #define RH_HASH_MAKE(NAME, KEY_T, VALUE_T, HASH_F, EQ_F, LOAD)	 		\
@@ -111,7 +111,7 @@ static inline struct NAME##_bucket 						\
 				item = swap;					\
 				return item;					\
 			}							\
-			i = (i+1) & ~(~((uint64_t)0) << map->size);		\
+			i = (i+1) & (map->size - 1);				\
 		}								\
 		struct NAME##_bucket swap = map->items[i];			\
 		map->items[i] = item;						\
@@ -126,7 +126,7 @@ static inline struct NAME##_bucket 						\
 }										\
 										\
 static inline int NAME##_resize(NAME *map, size_t to) {				\
-	if (!to || to <= map->size) {						\
+	if (!to || to <= map->size || to & (to - 1)) {				\
 		return 0;							\
 	}									\
 										\
@@ -210,7 +210,7 @@ static inline struct NAME##_bucket *NAME##_find(NAME *map, KEY_T key) {		\
 		if (map->hash[i] == hash && EQ_F(map->items[i].key, key)) {	\
 			return &map->items[i];					\
 		}								\
-		i = (i+1) & ~(~((uint64_t)0) << map->size);			\
+		i = (i+1) & (map->size - 1);					\
 	}									\
 										\
 	return NULL;								\
@@ -229,14 +229,14 @@ static inline struct NAME##_bucket NAME##_remove(NAME *map, KEY_T key) {	\
 										\
 	uint64_t i = found_at - map->items;					\
 	uint64_t prev = i;							\
-	i = (i+1) & ~(~((uint64_t)0) << map->size);				\
+	i = (i+1) & (map->size - 1);						\
 	while (map->hash[i]	 						\
 	&& RH_SLOT_DIST(RH_HASH_SLOT(map->hash[i], map->size)			\
 			, i, map->size) > 0) {					\
 		map->hash[prev] = map->hash[i];					\
 		map->items[prev] = map->items[i];				\
 		prev = i;							\
-		i = (i+1) & ~(~((uint64_t)0) << map->size);			\
+		i = (i+1) & (map->size - 1);					\
 	}									\
 	map->hash[prev] = 0;							\
 	map->items[prev] = (struct NAME##_bucket) {0};				\
@@ -252,7 +252,7 @@ static inline struct NAME##_bucket 						\
 		.value = value,							\
 	};									\
 										\
-	if (!map->no_items && !NAME##_resize(map, map->size+1)) {		\
+	if (!map->no_items && !NAME##_resize(map, (map->size?map->size:8)*2)) {	\
 		return ins;							\
 	}									\
 	if (!map || !map->items) {						\
