@@ -154,5 +154,13 @@ static inline TYPE NAME##_view(NAME *deq, size_t pos) {				\
 										\
 	return deq->items[(deq->start + pos) % deq->size];			\
 }										\
+										\
+static inline int NAME##_empty(NAME *deq) {					\
+	if (!deq->size || deq->start == deq->end) {				\
+		return 1;							\
+	}									\
+										\
+	return 0;								\
+}										\
 
 #endif
