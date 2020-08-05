@@ -128,7 +128,7 @@ static inline TYPE NAME##_pop(NAME *deq) {					\
 										\
 static inline int NAME##_rpush(NAME *deq, TYPE push) {				\
 	if ((!deq->size || (deq->end - 1) % deq->size == deq->start)		\
-	&& !NAME##_resize(deq, (deq->size?:1) * 2)) {				\
+	&& !NAME##_resize(deq, (deq->size?:8) * 2)) {				\
 		return 0;							\
 	}									\
 										\
