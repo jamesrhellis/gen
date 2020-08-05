@@ -53,4 +53,6 @@ typedef void *ptr;
 
 #define true 1
 #define false 0
+
+#define lenof(ARRAY) (sizeof(ARRAY)/sizeof(ARRAY[0]))
 #endif
