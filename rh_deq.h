@@ -58,10 +58,10 @@ static inline size_t NAME##_resize(NAME *deq, size_t to) {			\
 										\
 	if (deq->start < deq->end) {						\
 		size_t end_size = deq->size - deq->end;				\
-		memmove(&new[deq->end],						\
-			&new[to - end_size],					\
+		memmove(&new[to - end_size],					\
+			&new[deq->end],						\
 			end_size * sizeof(TYPE));				\
-		deq->end = end_size;						\
+		deq->end = to - end_size;					\
 	}									\
 										\
 	deq->items = new;							\
